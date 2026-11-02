@@ -1,0 +1,12 @@
+{
+  "name": "virtual-office-hub-ai-manager",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Virtual Office Hub secure AI Manager backend",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

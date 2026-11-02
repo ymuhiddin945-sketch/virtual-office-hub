@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Virtual Office Hub — Stage 8 Mobile Demo</title>
+<style>
+:root{--bg:#080d19;--panel:#111a2b;--panel2:#17243a;--line:#263752;--txt:#f2f6ff;--muted:#93a4bf;--blue:#668cff;--green:#36c995;--shadow:0 12px 35px #0004}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 15% 0%,#142342,transparent 38%),var(--bg);color:var(--txt);font:15px Inter,system-ui,sans-serif;line-height:1.45}
+header{padding:22px 18px;background:linear-gradient(115deg,#203967,#0f192d);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px;max-width:1100px;margin:auto}.logo{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#6d91ff,#4ed4d4);display:grid;place-items:center;color:#071225;font-weight:900;font-size:19px}
+h1{font-size:21px;margin:0 0 3px}header p{margin:0;color:#b6c6e0;font-size:12px}
+nav{display:flex;gap:7px;overflow:auto;padding:10px 14px;background:#0c1424ed;position:sticky;top:0;z-index:5;border-bottom:1px solid var(--line);backdrop-filter:blur(14px)}
+nav button{white-space:nowrap;border:1px solid transparent;background:transparent;color:var(--muted);padding:10px 13px;border-radius:11px;font-weight:650;font-size:13px}nav button.active{background:linear-gradient(135deg,#668cff,#5274e8);color:white}
+main{padding:18px 14px 40px;max-width:1100px;margin:auto}.view{display:none}.view.active{display:block;animation:fade .2s ease}@keyframes fade{from{opacity:.5;transform:translateY(4px)}to{opacity:1;transform:none}}
+.card{background:linear-gradient(145deg,#141f33,#0f192a);border:1px solid var(--line);border-radius:18px;padding:17px;margin:0 0 14px;box-shadow:var(--shadow)}
+h2{font-size:17px;margin:0 0 12px}h3{font-size:14px;margin:0 0 8px}.muted{color:var(--muted);font-size:12px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.stat{background:linear-gradient(145deg,var(--panel2),#142036);padding:14px;border-radius:14px;border:1px solid #ffffff08}.stat b{display:block;font-size:26px;margin-top:3px}.stat small{font-size:11px;color:var(--muted)}
+label{display:block;color:#b2c1d8;font-size:12px;font-weight:600;margin:12px 0 6px}
+input,select,textarea{width:100%;padding:12px 13px;border-radius:11px;border:1px solid #2b3d5b;background:#0b1425;color:var(--txt);font:inherit;outline:none}input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px #668cff20}textarea{min-height:95px}
+button{cursor:pointer}button.primary{background:linear-gradient(135deg,#6d91ff,#5275e7);border:0;color:white;padding:12px 16px;border-radius:11px;font-weight:750}button.secondary{background:#1b2b45;border:1px solid #344969;color:#e4edff;padding:10px 13px;border-radius:10px;font-weight:650}button.danger{background:#472a3b;border:1px solid #754052;color:#ffdce3;padding:8px 11px;border-radius:9px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}.task{padding:13px;background:linear-gradient(145deg,#192942,#152239);border:1px solid #2b3d59;border-radius:13px;margin:9px 0}.tasktop{display:flex;justify-content:space-between;gap:9px;align-items:flex-start}
+.tag{font-size:10px;font-weight:750;border-radius:30px;padding:5px 9px;background:#263e68;color:#d5e1ff}.tag.done{background:#174b40;color:#9cf1d4}.tag.late{background:#59343a;color:#ffc0c6}
+.step{display:flex;gap:11px;padding:12px 0;border-bottom:1px solid var(--line)}.step input{width:auto;accent-color:var(--green)}.notice{padding:12px;border-radius:12px;background:#332b1d;color:#ffe0a8;font-size:12px;line-height:1.55;border:1px solid #6b552d}
+small{color:var(--muted)}.empty{color:var(--muted);text-align:center;padding:24px 10px;font-size:13px}.toolbar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 14px}.toolbar input{grid-column:1/-1}
+.progress{height:7px;background:#263650;border-radius:20px;overflow:hidden;margin:10px 0 3px}.progress span{display:block;height:100%;background:linear-gradient(90deg,#4fd1d9,#668cff);border-radius:20px}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}.pill{padding:5px 9px;border-radius:20px;background:#1a3450;color:#a9d9ff;font-size:11px;font-weight:700}
+@media(min-width:650px){.stats{grid-template-columns:repeat(4,1fr)}.toolbar{grid-template-columns:2fr 1fr 1fr}.toolbar input{grid-column:auto}}
+</style>
+</head>
+<body>
+<header><div class="brand"><div class="logo">V</div><div><h1>Virtual Office Hub</h1><p>SMART WORKSPACE · STAGE 9 UI PREVIEW</p></div></div></header>
+<nav>
+<button class="active" data-tab="home">Bosh sahifa</button><button data-tab="tasks">Vazifalar</button><button data-tab="planner">AI reja</button><button data-tab="team">AI xodimlar</button><button data-tab="manager">AI Manager</button><button data-tab="reports">Hisobot</button><button data-tab="settings">Sozlamalar</button>
+</nav>
+<main>
+<section id="home" class="view active">
+<div class="card"><h2>Ofis boshqaruv paneli</h2><p class="muted">Vazifalarni yarating, xodimga biriktiring va ish rejasini sinab ko‘ring.</p>
+<div class="stats"><div class="stat"><small>Jami vazifalar</small><b id="sTotal">0</b></div><div class="stat"><small>Bajarilgan</small><b id="sDone">0</b></div><div class="stat"><small>Jarayonda</small><b id="sDoing">0</b></div><div class="stat"><small>Kechikkan</small><b id="sLate">0</b></div></div></div>
+<div class="card"><div class="section-head"><h2>Bajarilish ko‘rsatkichi</h2><span class="pill" id="completionLabel">0%</span></div><div class="progress"><span id="completionBar" style="width:0%"></span></div><p class="muted">Bajarilgan vazifalarning umumiy vazifalarga nisbati</p></div><div class="card"><h2>Tezkor boshlash</h2><p class="muted">Masalan: “Yangi internet-do‘kon uchun reklama kampaniyasini tayyorlash”.</p><button class="primary" onclick="tab('planner')">Ish rejasini tuzish</button> <button class="secondary" onclick="tab('tasks')">Vazifa qo‘shish</button></div>
+<div class="card"><h2>So‘nggi vazifalar</h2><div id="recent"></div></div>
+<div class="notice">Eslatma: bu telefon uchun demo. Reja tuzuvchi hozircha mahalliy namunaviy mantiq asosida ishlaydi; haqiqiy ChatGPT API ulanmagan. Ma’lumotlar shu brauzer xotirasida saqlanadi.</div>
+</section>
+<section id="tasks" class="view">
+<div class="card"><h2>Yangi vazifa</h2>
+<label>Vazifa nomi</label><input id="taskTitle" placeholder="Masalan: Sayt dizaynini tayyorlash">
+<label>Mas’ul xodim</label><select id="taskAgent"></select>
+<label>Muhimlik darajasi</label><select id="taskPriority"><option>O‘rtacha</option><option>Yuqori</option><option>Past</option></select>
+<label>Muddat</label><input id="taskDue" type="date">
+<div class="actions"><button class="primary" onclick="addTask()">Vazifani saqlash</button></div></div>
+<div class="card"><div class="section-head"><h2>Barcha vazifalar</h2><span class="pill" id="taskCount">0 ta vazifa</span></div>
+<div class="toolbar"><input id="taskSearch" placeholder="Vazifani qidirish..." oninput="render()">
+<select id="taskFilter" onchange="render()"><option value="all">Barcha holatlar</option><option>Yangi</option><option>Jarayonda</option><option>Tekshiruvda</option><option>Bajarildi</option><option value="late">Kechikkan</option></select>
+<select id="sortTasks" onchange="render()"><option value="new">Avval yangilari</option><option value="due">Muddat bo‘yicha</option><option value="priority">Muhimlik bo‘yicha</option></select></div><div id="taskList"></div></div>
+</section>
+<section id="planner" class="view">
+<div class="card"><h2>AI ish rejasini tuzuvchi</h2><p class="muted">Maqsadni yozing. Demo sizga bosqichlar, mas’ul xodimlar va taxminiy vaqtni taklif qiladi.</p>
+<label>Loyiha yoki topshiriq maqsadi</label><textarea id="goal" placeholder="Masalan: Kompaniya uchun yangi veb-sayt yaratish, dizayn, dasturlash va ishga tushirish"></textarea>
+<label>Ustuvorlik</label><select id="planPriority"><option>O‘rtacha</option><option>Yuqori</option><option>Shoshilinch</option></select>
+<div class="actions"><button class="primary" onclick="makePlan()">Ish rejasini tuzish</button></div></div>
+<div class="card" id="planBox"><h2>Taklif qilingan reja</h2><p class="empty">Avval yuqoriga maqsadni yozib, “Ish rejasini tuzish” tugmasini bosing.</p></div>
+</section>
+<section id="team" class="view"><div class="card"><h2>Virtual AI xodimlar</h2><p class="muted">Har bir xodimning vazifasi va mas’uliyat sohasi.</p><div id="teamList"></div></div></section>
+<section id="reports" class="view"><div class="card"><h2>Hisobot</h2><div id="report"></div><div class="actions"><button class="secondary" onclick="exportCSV()">CSV hisobotni yuklash</button><button class="secondary" onclick="backup()">JSON zaxira nusxa</button></div></div></section>
+
+<section id="manager" class="view">
+<div class="card"><h2>👤 Yagona AI Manager</h2><p class="muted">Siz faqat Managerga buyruq berasiz. U vazifani xodimlarga taqsimlaydi, natijani tekshiradi va kamchilik bo‘lsa qayta ishlashga yuboradi.</p>
+<label>Managerga topshiriq</label><textarea id="managerCommand" placeholder="Masalan: Mijozlar uchun sayt tayyorla, barcha funksiyalarni tekshir va yakuniy hisobot ber..."></textarea>
+<div class="actions"><button class="primary" onclick="managerCreate()">Buyruqni topshirish</button><button class="secondary" onclick="document.getElementById('managerCommand').value='Telefon va kompyuterda ishlaydigan sayt tayyorla. Barcha tugmalar va shakllarni test qil, xatolarni tuzat va hisobot ber.'">Namuna</button></div>
+<div class="notice" style="margin-top:12px">AI server ulanganida Manager vazifani xodimlarga taqsimlaydi, natijalarni uch bosqichda tekshiradi va tuzatish talab qiladi. API kaliti faqat serverda saqlanadi.</div></div>
+<div class="card"><div class="section-head"><h2>Buyruqlar va nazorat</h2><span class="pill" id="managerCount">0 ta</span></div><div id="managerList"><p class="empty">Hali Managerga buyruq berilmagan.</p></div></div>
+<div class="card"><h2>🔍 Tekshiruv tartibi</h2>
+<div class="step"><div><strong>1. Birinchi tekshiruv</strong><div class="muted">Buyruqqa moslik, to‘liqlik va aniqlik tekshiriladi.</div></div></div>
+<div class="step"><div><strong>2. Tuzatish va qayta test</strong><div class="muted">Kamchiliklar xodimga qaytariladi, tuzatilgan natija qayta ko‘riladi.</div></div></div>
+<div class="step"><div><strong>3. Yakuniy nazorat</strong><div class="muted">Dalillar, test natijalari va yakuniy hisobot tekshiriladi. Test qilib bo‘lmagan joylar ochiq ko‘rsatiladi.</div></div></div>
+<p class="muted">Baholash: buyruqqa moslik 35, sifat 25, to‘liqlik 20, aniqlik 10, test dalillari 10 ball. Dalilsiz bajarilgan deb tasdiqlanmaydi.</p></div>
+</section>
+
+<section id="settings" class="view"><div class="card"><h2>Ma’lumotlarni boshqarish</h2><p class="muted">Ma’lumotlar faqat shu telefon/brauzerda saqlanadi.</p><div class="actions"><button class="secondary" onclick="backup()">Zaxira nusxa olish</button><button class="danger" onclick="clearAll()">Barcha ma’lumotni tozalash</button></div><label>JSON zaxira faylini tiklash</label><input type="file" id="restoreFile" accept=".json,application/json" onchange="restore(event)"></div></section>
+</main>
+<script>
+const agents=[
+{name:"AI direktor",role:"Ishlarni umumiy boshqarish va nazorat"},
+{name:"Biznes tahlilchi",role:"Talablar, tahlil va rejalashtirish"},
+{name:"Marketing mutaxassisi",role:"Reklama va mijozlarni jalb qilish"},
+{name:"Dizayner",role:"Interfeys va vizual materiallar"},
+{name:"Dasturchi",role:"Sayt, dastur va texnik ishlar"},
+{name:"Kontent mutaxassisi",role:"Matn, maqola va kontent"},
+{name:"Moliya mutaxassisi",role:"Xarajatlar va budjet"},
+{name:"QA sinovchi",role:"Tekshirish va xatolarni topish"}
+];
+let tasks=JSON.parse(localStorage.getItem("vo8tasks")||"[]"), plan=[];
+const $=id=>document.getElementById(id);
+function save(){localStorage.setItem("vo8tasks",JSON.stringify(tasks));render()}
+function tab(id){document.querySelectorAll(".view").forEach(x=>x.classList.toggle("active",x.id===id));document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("active",x.dataset.tab===id))}
+document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>tab(b.dataset.tab)));
+function init(){ $("taskAgent").innerHTML=agents.map(a=>`<option>${a.name}</option>`).join("");$("teamList").innerHTML=agents.map(a=>`<div class="task"><strong>${a.name}</strong><div class="muted">${a.role}</div></div>`).join("");render()}
+function addTask(title,agent,priority,due){title=title||$("taskTitle").value.trim();agent=agent||$("taskAgent").value;priority=priority||$("taskPriority").value;due=due||$("taskDue").value;if(!title){alert("Vazifa nomini kiriting.");return}tasks.unshift({id:Date.now()+Math.random(),title,agent,priority,due,status:"Yangi",created:new Date().toISOString()});$("taskTitle").value="";save();tab("tasks")}
+function statusChange(id,value){let t=tasks.find(x=>x.id==id);if(t){t.status=value;save()}}
+function delTask(id){if(confirm("Vazifa o‘chirilsinmi?")){tasks=tasks.filter(x=>x.id!=id);save()}}
+function cardTask(t){let late=t.due&&new Date(t.due+"T23:59:59")<new Date()&&t.status!=="Bajarildi";return `<div class="task"><div class="tasktop"><div><strong>${esc(t.title)}</strong><div class="muted">${esc(t.agent)} · ${esc(t.priority)}${t.due?" · Muddat: "+esc(t.due):""}</div></div><span class="tag ${t.status==="Bajarildi"?"done":late?"late":""}">${late?"Kechikkan":t.status}</span></div><label>Holati</label><select onchange="statusChange('${t.id}',this.value)">${["Yangi","Jarayonda","Tekshiruvda","Bajarildi"].map(s=>`<option ${t.status===s?"selected":""}>${s}</option>`).join("")}</select><div class="actions"><button class="danger" onclick="delTask('${t.id}')">O‘chirish</button></div></div>`}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function render(){
+ let done=tasks.filter(t=>t.status==="Bajarildi").length;
+ let doing=tasks.filter(t=>t.status==="Jarayonda").length;
+ let late=tasks.filter(t=>t.due&&new Date(t.due+"T23:59:59")<new Date()&&t.status!=="Bajarildi").length;
+ $("sTotal").textContent=tasks.length;$("sDone").textContent=done;$("sDoing").textContent=doing;$("sLate").textContent=late;
+ let pct=tasks.length?Math.round(done/tasks.length*100):0;
+ if($("completionLabel"))$("completionLabel").textContent=pct+"%";
+ if($("completionBar"))$("completionBar").style.width=pct+"%";
+ let filtered=[...tasks],q=($("taskSearch")?.value||"").toLowerCase(),f=$("taskFilter")?.value||"all",sort=$("sortTasks")?.value||"new";
+ if(q)filtered=filtered.filter(t=>(t.title+" "+t.agent).toLowerCase().includes(q));
+ if(f==="late")filtered=filtered.filter(t=>t.due&&new Date(t.due+"T23:59:59")<new Date()&&t.status!=="Bajarildi");
+ else if(f!=="all")filtered=filtered.filter(t=>t.status===f);
+ if(sort==="due")filtered.sort((x,y)=>(x.due||"9999").localeCompare(y.due||"9999"));
+ if(sort==="priority"){let r={"Shoshilinch":0,"Yuqori":1,"O‘rtacha":2,"Past":3};filtered.sort((x,y)=>(r[x.priority]??2)-(r[y.priority]??2))}
+ if($("taskCount"))$("taskCount").textContent=filtered.length+" ta vazifa";
+ $("taskList").innerHTML=filtered.length?filtered.map(cardTask).join(""):'<p class="empty">Mos vazifa topilmadi.</p>';
+ $("recent").innerHTML=tasks.slice(0,4).map(t=>`<div class="task"><div class="tasktop"><strong>${esc(t.title)}</strong><span class="tag ${t.status==="Bajarildi"?"done":""}">${esc(t.status)}</span></div><div class="muted">${esc(t.agent)} · ${esc(t.priority)}</div></div>`).join("")||'<p class="empty">Hali ish boshlanmagan.</p>';
+ $("report").innerHTML=`<div class="stats"><div class="stat"><small>Jami</small><b>${tasks.length}</b></div><div class="stat"><small>Bajarilgan</small><b>${done}</b></div><div class="stat"><small>Jarayonda</small><b>${doing}</b></div><div class="stat"><small>Kechikkan</small><b>${late}</b></div></div><h3 style="margin-top:16px">Xodimlar bo‘yicha yuklama</h3>`+
+ agents.map(x=>{let n=tasks.filter(t=>t.agent===x.name).length,k=tasks.length?Math.round(n/tasks.length*100):0;return `<div class="task"><div class="section-head"><strong>${x.name}</strong><span class="muted">${n} ta vazifa</span></div><div class="progress"><span style="width:${k}%"></span></div></div>`}).join("");
+}
+function makePlan(){let g=$("goal").value.trim();if(!g){alert("Avval loyiha maqsadini yozing.");return}let s=g.toLowerCase();let steps;
+if(/sayt|veb|web|ilova|dastur|platforma/.test(s))steps=[
+["Talablarni aniqlash va ish hajmini belgilash","Biznes tahlilchi","2 soat"],
+["Interfeys va sahifalar dizaynini tayyorlash","Dizayner","1 kun"],
+["Dasturiy qismini ishlab chiqish","Dasturchi","2–4 kun"],
+["Matn va materiallarni joylashtirish","Kontent mutaxassisi","1 kun"],
+["Funksiyalarni sinash va xatolarni tuzatish","QA sinovchi","1 kun"],
+["Natijani tekshirish va ishga tushirish","AI direktor","2 soat"]];
+else if(/reklama|marketing|sotuv|mijoz/.test(s))steps=[
+["Maqsadli auditoriya va bozorni o‘rganish","Biznes tahlilchi","3 soat"],
+["Reklama strategiyasi va budjetni belgilash","Marketing mutaxassisi","3 soat"],
+["Reklama matni va materiallarini tayyorlash","Kontent mutaxassisi","1 kun"],
+["Banner va dizaynlarni tayyorlash","Dizayner","1 kun"],
+["Kampaniyani ishga tushirish va natijani kuzatish","Marketing mutaxassisi","2 kun"],
+["Xarajat va natijalarni tahlil qilish","Moliya mutaxassisi","3 soat"]];
+else steps=[
+["Maqsad va talablarni aniqlashtirish","Biznes tahlilchi","2 soat"],
+["Ish bosqichlari va resurslarni rejalashtirish","AI direktor","2 soat"],
+["Asosiy ishlarni bajarish","Dasturchi","1–2 kun"],
+["Natijani hujjatlashtirish va materiallarni tayyorlash","Kontent mutaxassisi","4 soat"],
+["Sifatni tekshirish","QA sinovchi","3 soat"],
+["Yakuniy natijani tasdiqlash","AI direktor","1 soat"]];
+plan=steps.map((x,i)=>({title:x[0],agent:x[1],time:x[2],checked:false}));let pr=$("planPriority").value;$("planBox").innerHTML=`<h2>Taklif qilingan ish rejasi</h2><p><b>Maqsad:</b> ${esc(g)}</p><p class="muted">Ustuvorlik: ${esc(pr)} · ${plan.length} bosqich</p><div id="steps">${plan.map((p,i)=>`<div class="step"><input type="checkbox" onchange="plan[${i}].checked=this.checked"><div><strong>${i+1}. ${p.title}</strong><div class="muted">Mas’ul: ${p.agent} · Taxminiy vaqt: ${p.time}</div></div></div>`).join("")}</div><div class="notice">Bu avtomatik namunaviy reja. Haqiqiy AI xulosasi emas. Tasdiqlashdan oldin bosqichlarni ko‘rib chiqing.</div><div class="actions"><button class="primary" onclick="approvePlan()">Rejani tasdiqlash va vazifalarga qo‘shish</button><button class="secondary" onclick="makePlan()">Qayta tuzish</button></div>`}
+function approvePlan(){if(!plan.length)return;if(!confirm("Rejadagi "+plan.length+" ta bosqich vazifa sifatida qo‘shilsinmi?"))return;let g=$("goal").value.trim();plan.forEach((p,i)=>tasks.push({id:Date.now()+i+Math.random(),title:g+" — "+p.title,agent:p.agent,priority:$("planPriority").value,due:"",status:p.checked?"Bajarildi":"Yangi",created:new Date().toISOString()}));save();tab("tasks");alert("Reja vazifalar ro‘yxatiga qo‘shildi.")}
+function exportCSV(){let rows=[["Vazifa","Mas’ul","Muhimlik","Muddat","Holat"],...tasks.map(t=>[t.title,t.agent,t.priority,t.due,t.status])];let csv=rows.map(r=>r.map(v=>'"'+String(v||"").replace(/"/g,'""')+'"').join(",")).join("\n");download("virtual-office-hisobot.csv","\ufeff"+csv,"text/csv")}
+function backup(){download("virtual-office-zaxira.json",JSON.stringify(tasks,null,2),"application/json")}
+function download(name,data,type){let a=document.createElement("a"),u=URL.createObjectURL(new Blob([data],{type}));a.href=u;a.download=name;a.click();URL.revokeObjectURL(u)}
+function restore(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);if(!Array.isArray(d))throw 0;tasks=d;save();alert("Zaxira nusxa tiklandi.")}catch(_){alert("Fayl noto‘g‘ri formatda.")}};r.readAsText(f)}
+function clearAll(){if(confirm("Barcha vazifalar butunlay o‘chirilsinmi?")){tasks=[];save()}}
+
+let managerOrders=JSON.parse(localStorage.getItem("vo_manager_orders")||"[]");
+function saveManager(){localStorage.setItem("vo_manager_orders",JSON.stringify(managerOrders));renderManager()}
+function managerPickAgent(text){
+ let s=text.toLowerCase();
+ if(/sayt|web|html|kod|dastur|ilova|bot|texnik/.test(s))return "Dasturchi";
+ if(/reklama|marketing|sotuv|mijoz/.test(s))return "Marketing mutaxassisi";
+ if(/hisob|budjet|xarajat|foyda|narx/.test(s))return "Moliya mutaxassisi";
+ if(/dizayn|rasm|interfeys/.test(s))return "Dizayner";
+ if(/tahlil|hisobot|jadval/.test(s))return "Biznes tahlilchi";
+ return "Kontent mutaxassisi";
+}
+async function managerCreate(){
+ let command=$("managerCommand").value.trim();
+ if(!command){alert("Managerga buyruq yozing.");return}
+ const btn=document.querySelector('#manager button.primary');
+ if(btn){btn.disabled=true;btn.textContent="Manager ishlayapti...";}
+ let order={id:Date.now()+Math.random(),command,agent:"Manager tanlaydi",stage:0,status:"AI Manager buyruqni tahlil qilmoqda",checks:[],created:new Date().toISOString(),running:true};
+ managerOrders.unshift(order);saveManager();$("managerCommand").value="";
+ try{
+  const response=await fetch("/api/manager",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({command})});
+  const data=await response.json();
+  if(!response.ok)throw new Error(data.error||"Serverdan javob kelmadi");
+  order.agent=(data.plan?.tasks||[]).map(x=>x.employee).join(", ")||"Virtual xodimlar";
+  order.status=data.status||"Tekshiruv tugadi";order.stage=3;order.running=false;
+  order.plan=data.plan;order.workers=data.workers;order.reviews=data.reviews;order.score=data.score;order.finalReport=data.finalReport;order.testLimitations=data.testLimitations;
+  // Keep the main task list and dashboard in sync with the Manager's delegated work.
+  (data.plan?.tasks||[]).forEach((t,i)=>tasks.unshift({id:Date.now()+i+Math.random(),title:t.task,agent:t.employee,priority:"Yuqori",due:"",status:"Tekshiruvda",created:new Date().toISOString(),managerOrder:true}));
+  save();saveManager();
+ }catch(err){
+  order.running=false;order.status="Ulanishda xatolik";order.error=err.message;saveManager();
+  alert("AI serverga ulanish amalga oshmadi: "+err.message+"\nServer manzili va API sozlamalarini tekshiramiz.");
+ }finally{if(btn){btn.disabled=false;btn.textContent="Buyruqni topshirish";}}
+}
+function managerAdvance(id){
+ let o=managerOrders.find(x=>x.id==id);if(!o)return;
+ let report=o.finalReport||"Hali yakuniy hisobot yo‘q.";
+ alert(report);
+}
+function renderManager(){
+ let host=$("managerList");if(!host)return;
+ $("managerCount").textContent=managerOrders.length+" ta";
+ if(!managerOrders.length){host.innerHTML='<p class="empty">Hali Managerga buyruq berilmagan.</p>';return}
+ host.innerHTML=managerOrders.map(o=>`<div class="task"><div class="tasktop"><div><strong>${esc(o.command)}</strong><div class="muted">Mas’ul: ${esc(o.agent)} · ${new Date(o.created).toLocaleString()}</div></div><span class="tag ${o.status==="Yakuniy hisobot tayyor"?"done":""}">${esc(o.status)}</span></div>
+ ${o.running?'<div class="progress"><span style="width:45%"></span></div><p class="muted">Manager rejalashtiryapti, xodimlar ishlayapti va nazoratchi tekshiryapti. Oynani yopmang.</p>':""}
+ ${o.error?`<div class="notice">${esc(o.error)}</div>`:""}
+ ${o.plan?`<h3>Manager rejasi</h3><p>${esc(o.plan.summary||"")}</p>${(o.plan.tasks||[]).map((t,i)=>`<div class="step"><div><strong>${i+1}. ${esc(t.employee)}</strong><div class="muted">${esc(t.task)}</div></div></div>`).join("")}`:""}
+ ${(o.workers||[]).map(w=>`<div class="task"><strong>👤 ${esc(w.employee)} — bajarilgan ish</strong><p>${esc(w.deliverable||w.result||"")}</p></div>`).join("")}
+ ${(o.reviews||[]).map(r=>`<div class="step"><div><strong>${esc(r.round||"Tekshiruv")} · ${Number(r.score||0)}/100</strong><div class="muted">${esc(r.summary||"")}</div>${r.issues?.length?`<div class="muted">Kamchiliklar: ${esc(r.issues.join("; "))}</div>`:""}</div></div>`).join("")}
+ ${o.score!==undefined?`<div class="notice"><b>Yakuniy baho: ${esc(o.score)}/100</b><br>${esc(o.finalReport||"")}</div>`:""}
+ ${o.testLimitations?`<p class="muted">Test cheklovi: ${esc(o.testLimitations)}</p>`:""}
+ </div>`).join("");
+}
+
+init();renderManager();
+</script>
+</body></html>
