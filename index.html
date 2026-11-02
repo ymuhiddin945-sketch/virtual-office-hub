@@ -38,7 +38,7 @@ small{color:var(--muted)}.empty{color:var(--muted);text-align:center;padding:24p
 <div class="stats"><div class="stat"><small>Jami vazifalar</small><b id="sTotal">0</b></div><div class="stat"><small>Bajarilgan</small><b id="sDone">0</b></div><div class="stat"><small>Jarayonda</small><b id="sDoing">0</b></div><div class="stat"><small>Kechikkan</small><b id="sLate">0</b></div></div></div>
 <div class="card"><div class="section-head"><h2>Bajarilish ko‘rsatkichi</h2><span class="pill" id="completionLabel">0%</span></div><div class="progress"><span id="completionBar" style="width:0%"></span></div><p class="muted">Bajarilgan vazifalarning umumiy vazifalarga nisbati</p></div><div class="card"><h2>Tezkor boshlash</h2><p class="muted">Masalan: “Yangi internet-do‘kon uchun reklama kampaniyasini tayyorlash”.</p><button class="primary" onclick="tab('planner')">Ish rejasini tuzish</button> <button class="secondary" onclick="tab('tasks')">Vazifa qo‘shish</button></div>
 <div class="card"><h2>So‘nggi vazifalar</h2><div id="recent"></div></div>
-<div class="notice">Eslatma: bu telefon uchun demo. Reja tuzuvchi hozircha mahalliy namunaviy mantiq asosida ishlaydi; haqiqiy ChatGPT API ulanmagan. Ma’lumotlar shu brauzer xotirasida saqlanadi.</div>
+<div class="notice">Vazifalar brauzer xotirasida saqlanadi. AI Manager Render serveri orqali OpenAI API bilan ishlaydi; API kaliti serverda qoladi.</div>
 </section>
 <section id="tasks" class="view">
 <div class="card"><h2>Yangi vazifa</h2>
@@ -65,7 +65,7 @@ small{color:var(--muted)}.empty{color:var(--muted);text-align:center;padding:24p
 <section id="manager" class="view">
 <div class="card"><h2>👤 Yagona AI Manager</h2><p class="muted">Siz faqat Managerga buyruq berasiz. U vazifani xodimlarga taqsimlaydi, natijani tekshiradi va kamchilik bo‘lsa qayta ishlashga yuboradi.</p>
 <label>Managerga topshiriq</label><textarea id="managerCommand" placeholder="Masalan: Mijozlar uchun sayt tayyorla, barcha funksiyalarni tekshir va yakuniy hisobot ber..."></textarea>
-<div class="actions"><button class="primary" onclick="managerCreate()">Buyruqni topshirish</button><button class="secondary" onclick="document.getElementById('managerCommand').value='Telefon va kompyuterda ishlaydigan sayt tayyorla. Barcha tugmalar va shakllarni test qil, xatolarni tuzat va hisobot ber.'">Namuna</button></div>
+<div class="actions"><button class="primary" onclick="managerCreate()">AI Managerga yuborish</button><button class="secondary" onclick="checkAI()">AI ulanishini tekshirish</button><button class="secondary" onclick="document.getElementById('managerCommand').value='Telefon va kompyuterda ishlaydigan sayt tayyorla. Barcha tugmalar va shakllarni test qil, xatolarni tuzat va hisobot ber.'">Namuna</button></div>
 <div class="notice" style="margin-top:12px">AI server ulanganida Manager vazifani xodimlarga taqsimlaydi, natijalarni uch bosqichda tekshiradi va tuzatish talab qiladi. API kaliti faqat serverda saqlanadi.</div></div>
 <div class="card"><div class="section-head"><h2>Buyruqlar va nazorat</h2><span class="pill" id="managerCount">0 ta</span></div><div id="managerList"><p class="empty">Hali Managerga buyruq berilmagan.</p></div></div>
 <div class="card"><h2>🔍 Tekshiruv tartibi</h2>
@@ -171,9 +171,9 @@ async function managerCreate(){
   const response=await fetch("/api/manager",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({command})});
   const data=await response.json();
   if(!response.ok)throw new Error(data.error||"Serverdan javob kelmadi");
-  order.agent=(data.plan?.tasks||[]).map(x=>x.employee).join(", ")||"Virtual xodimlar";
+  order.agent=(data.plan?.tasks||[]).map(x=>x.employee).join(", ")||"AI yordamchi";
   order.status=data.status||"Tekshiruv tugadi";order.stage=3;order.running=false;
-  order.plan=data.plan;order.workers=data.workers;order.reviews=data.reviews;order.score=data.score;order.finalReport=data.finalReport;order.testLimitations=data.testLimitations;
+  order.chatReply=data.reply||"";order.plan=data.plan;order.workers=data.workers;order.reviews=data.reviews;order.score=data.score;order.finalReport=data.finalReport;order.testLimitations=data.testLimitations;
   // Keep the main task list and dashboard in sync with the Manager's delegated work.
   (data.plan?.tasks||[]).forEach((t,i)=>tasks.unshift({id:Date.now()+i+Math.random(),title:t.task,agent:t.employee,priority:"Yuqori",due:"",status:"Tekshiruvda",created:new Date().toISOString(),managerOrder:true}));
   save();saveManager();
@@ -182,6 +182,7 @@ async function managerCreate(){
   alert("AI serverga ulanish amalga oshmadi: "+err.message+"\nServer manzili va API sozlamalarini tekshiramiz.");
  }finally{if(btn){btn.disabled=false;btn.textContent="Buyruqni topshirish";}}
 }
+async function checkAI(){const host=$("managerList");host.innerHTML='<p class="empty">Server va API tekshirilmoqda...</p>';try{const r=await fetch('/api/health',{cache:'no-store'});const d=await r.json();if(!r.ok)throw new Error(d.error||r.status);host.innerHTML=`<div class="notice">Server: ${d.ok?'ON':'OFF'} · Model: ${esc(d.model)} · API kaliti: ${d.apiKeyConfigured?'sozlangan':'YO‘Q'} · Xodimlar: ${d.employees}</div>`;}catch(e){host.innerHTML=`<div class="notice">Server tekshiruvi xatosi: ${esc(e.message)}</div>`}}
 function managerAdvance(id){
  let o=managerOrders.find(x=>x.id==id);if(!o)return;
  let report=o.finalReport||"Hali yakuniy hisobot yo‘q.";
@@ -194,6 +195,7 @@ function renderManager(){
  host.innerHTML=managerOrders.map(o=>`<div class="task"><div class="tasktop"><div><strong>${esc(o.command)}</strong><div class="muted">Mas’ul: ${esc(o.agent)} · ${new Date(o.created).toLocaleString()}</div></div><span class="tag ${o.status==="Yakuniy hisobot tayyor"?"done":""}">${esc(o.status)}</span></div>
  ${o.running?'<div class="progress"><span style="width:45%"></span></div><p class="muted">Manager rejalashtiryapti, xodimlar ishlayapti va nazoratchi tekshiryapti. Oynani yopmang.</p>':""}
  ${o.error?`<div class="notice">${esc(o.error)}</div>`:""}
+ ${o.chatReply?`<div class="task"><strong>🤖 AI javobi</strong><p style="white-space:pre-wrap">${esc(o.chatReply)}</p></div>`:""}
  ${o.plan?`<h3>Manager rejasi</h3><p>${esc(o.plan.summary||"")}</p>${(o.plan.tasks||[]).map((t,i)=>`<div class="step"><div><strong>${i+1}. ${esc(t.employee)}</strong><div class="muted">${esc(t.task)}</div></div></div>`).join("")}`:""}
  ${(o.workers||[]).map(w=>`<div class="task"><strong>👤 ${esc(w.employee)} — bajarilgan ish</strong><p>${esc(w.deliverable||w.result||"")}</p></div>`).join("")}
  ${(o.reviews||[]).map(r=>`<div class="step"><div><strong>${esc(r.round||"Tekshiruv")} · ${Number(r.score||0)}/100</strong><div class="muted">${esc(r.summary||"")}</div>${r.issues?.length?`<div class="muted">Kamchiliklar: ${esc(r.issues.join("; "))}</div>`:""}</div></div>`).join("")}

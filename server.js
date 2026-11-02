@@ -35,10 +35,11 @@ function readBody(req){return new Promise((resolve,reject)=>{
 });
 }
 async function askAI(instructions,input){
-  const response=await fetch('https://api.openai.com/v1/responses',{
+  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),90000);
+  let response;try{response=await fetch('https://api.openai.com/v1/responses',{
     method:'POST',headers:{Authorization:`Bearer ${API_KEY}`,'Content-Type':'application/json'},
-    body:JSON.stringify({model:MODEL,instructions,input})
-  });
+    body:JSON.stringify({model:MODEL,instructions,input}),signal:controller.signal
+  });}catch(e){if(e.name==='AbortError')throw new Error('OpenAI 90 soniyada javob bermadi. Model/API/billingni tekshiring.');throw new Error('OpenAI bilan aloqa xatosi: '+e.message);}finally{clearTimeout(timer);}
   const data=await response.json().catch(()=>({}));
   if(!response.ok)throw new Error(data.error?.message||`OpenAI API xatosi (${response.status})`);
   const text=data.output_text||(data.output||[]).flatMap(x=>x.content||[]).filter(x=>x.type==='output_text').map(x=>x.text).join('\n');
@@ -53,6 +54,9 @@ function parseJson(text){
 }
 function safeString(v,max=5000){return String(v??'').trim().slice(0,max);}
 async function managerWorkflow(command){
+  // Conversational prompts get a direct natural-language answer; project commands trigger the team workflow.
+  const intent=parseJson(await askAI('Siz Virtual Office Hub so‘rov routerisiz. Foydalanuvchi oddiy suhbat/savol so‘rayaptimi yoki xodimlarga bo‘linadigan loyiha/vazifa buyuryaptimi? JSON: {"mode":"chat" yoki "work"}. Oddiy salom, savol, maslahat, suhbat = chat. Yaratish, ishlab chiqish, rejalash, tahlil, bajarish, loyiha = work. Faqat JSON qaytaring.',command));
+  if(intent.mode==='chat') return {mode:'chat',reply:await askAI('Siz Virtual Office Hub ichidagi o‘zbek tilida samimiy, foydali AI yordamchisiz. Oddiy savollarga bevosita javob bering, suhbatlashing. Buyruq bo‘lmasa, vazifalarni xodimlarga taqsimlamang.',command),status:'AI javobi'};
   // 1) Manager makes a clear, limited, role-matched plan.
   const plan=parseJson(await askAI(
     `Siz Virtual Office Hub AI Managerisiz. Buyruqni tushunib, 1–3 ta mustaqil, bajariladigan vazifaga ajrating. Faqat ushbu xodimlarni tanlang: ${EMPLOYEE_NAMES.join(', ')}. JSON: {"summary":"...","tasks":[{"employee":"...","task":"...","acceptance_criteria":["..."]}]}. Vazifalar takrorlanmasin, qabul mezonlari tekshiriladigan bo‘lsin.`,command));
@@ -94,6 +98,10 @@ async function managerWorkflow(command){
 const server=http.createServer(async(req,res)=>{
   const url=new URL(req.url,'http://localhost');
   if(req.method==='GET'&&url.pathname==='/api/health')return send(res,200,{ok:true,service:'Virtual Office Hub AI Manager',model:MODEL,apiKeyConfigured:Boolean(API_KEY),employees:EMPLOYEE_NAMES.length,workflow:'manager-workers-controller-revision'});
+  if(req.method==='POST'&&url.pathname==='/api/chat'){
+    if(!API_KEY)return send(res,503,{error:'Serverda OPENAI_API_KEY kiritilmagan.'});
+    try{const body=await readBody(req);const message=safeString(body.message,MAX_COMMAND);if(!message)return send(res,400,{error:'Xabar bo‘sh.'});const reply=await askAI('Siz Virtual Office Hub ichidagi o‘zbek tilida samimiy, aniq AI yordamchisiz. Savollarga javob bering va foydalanuvchi bilan tabiiy suhbatlashing.',message);return send(res,200,{reply,model:MODEL});}catch(e){console.error('Chat error:',e.message);return send(res,500,{error:e.message||'Server xatosi'});}
+  }
   if(req.method==='POST'&&url.pathname==='/api/manager'){
     if(!API_KEY)return send(res,503,{error:'Serverda OPENAI_API_KEY maxfiy sozlamasi kiritilmagan.'});
     try{const body=await readBody(req);const command=safeString(body.command,MAX_COMMAND);if(!command)return send(res,400,{error:'Manager buyrug‘i bo‘sh.'});if(String(body.command||'').length>MAX_COMMAND)return send(res,400,{error:`Buyruq ${MAX_COMMAND} belgidan oshmasin.`});const result=await managerWorkflow(command);return send(res,200,result);}
