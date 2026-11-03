@@ -27,3 +27,7 @@
 
 ## Hozirgi cheklov
 Agentlar OpenAI API orqali haqiqiy AI javoblarini ishlab chiqaradi. Hozircha agentlar kompyuter/fayl tizimida o‘zlari mustaqil operatsiya bajarmaydi; kodni sandboxda ishga tushirish, browser automation va real test muhiti keyingi integratsiya bosqichidir. Controller matn va mezonlar bo‘yicha tekshiradi, amaliy testni o‘zi bajarib bermaydi.
+
+
+## 3D ofis integratsiyasi
+Asosiy paneldagi **3D Ofis** bo‘limi `office3d.html` sahifasini iframe orqali ochadi. Bu boshlang‘ich geometrik 3D prototip bo‘lib, hozircha fotorealistik NPC modellarini anglatmaydi. Three.js CDN orqali yuklanadi; internet kerak. AI Manager API serveri va 3D ko‘rinish bir Node serverda ishlaydi.

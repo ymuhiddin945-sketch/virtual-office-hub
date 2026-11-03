@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Virtual Office Hub — Prototype</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#10151d;color:#eef3fa;font:14px system-ui;overflow:hidden}
+#hud{position:fixed;z-index:5;top:12px;left:12px;background:#101923dd;border:1px solid #334457;border-radius:12px;padding:12px 15px;max-width:320px;backdrop-filter:blur(8px)}
+#hud h2{font-size:17px;margin:0 0 8px;color:#8dd8ff}#hud p{margin:5px 0;color:#c8d4e2}
+#buttons{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}button{background:#25394c;color:#fff;border:1px solid #45627c;padding:7px 10px;border-radius:8px;cursor:pointer}
+#tip{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:#101923dd;padding:9px 14px;border-radius:10px;color:#c9d6e4}
+#loading{position:fixed;inset:0;display:grid;place-items:center;background:#10151d;z-index:10}
+</style>
+</head>
+<body>
+<div id="loading"><div style="text-align:center;padding:24px;max-width:420px">
+      <h2 style="color:#8dd8ff">VIRTUAL OFFICE HUB</h2>
+      <p id="loadmsg">3D grafik kutubxonasi yuklanmoqda…</p>
+      <p id="loaderr" style="color:#ffb3b3"></p>
+      <button id="retry" style="display:none" onclick="location.reload()">Qayta urinish</button>
+    </div></div>
+<div id="hud"><h2>VIRTUAL OFFICE HUB</h2><p id="clock">08:00 • Ish kuni</p><p id="stats">Xodimlar: 8 • Ishlayapti: 6 • Dam: 2</p><p id="status">Kuzatuv rejimi</p>
+<div id="buttons"><button onclick="setView('wide')">Umumiy</button><button onclick="setView('desk')">Ish stollari</button><button onclick="setView('break')">Dam olish</button><button onclick="toggleTime()">⏸ / ▶ Vaqt</button></div></div>
+<div id="tip">Sichqoncha: kamerani aylantirish • G‘ildirak: yaqin/uzoq • WASD: kamera harakati</div>
+<script>
+function loadThree(urls, i=0) {
+  if (i >= urls.length) {
+    document.getElementById('loadmsg').textContent = '3D kutubxonasi yuklanmadi.';
+    document.getElementById('loaderr').textContent = 'Internet aloqasini tekshiring. Agar fayl telefonda ochilayotgan bo‘lsa, Chrome orqali oching yoki internetga ulangan holda qayta urinib ko‘ring.';
+    document.getElementById('retry').style.display = 'inline-block';
+    return;
+  }
+  document.getElementById('loadmsg').textContent = '3D kutubxonasi yuklanmoqda ('+(i+1)+'/3)…';
+  const s = document.createElement('script');
+  s.src = urls[i];
+  s.onload = () => { try { startOffice(); } catch(e) { showError(e); } };
+  s.onerror = () => loadThree(urls, i+1);
+  document.head.appendChild(s);
+}
+function showError(e) {
+  document.getElementById('loadmsg').textContent = 'Ofisni ishga tushirib bo‘lmadi.';
+  document.getElementById('loaderr').textContent = (e && e.message ? e.message : String(e)) + ' — Chrome’da qayta ochib ko‘ring.';
+  document.getElementById('retry').style.display = 'inline-block';
+}
+function startOffice() {
+try {
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x9db7c9);scene.fog=new THREE.Fog(0x9db7c9,22,55);
+const camera=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,.1,100);camera.position.set(13,12,17);
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1;document.body.appendChild(renderer.domElement);
+const controls={target:new THREE.Vector3(0,1.5,0),theta:Math.PI/4,phi:1.05,r:23,drag:false};function updateCam(){camera.position.set(controls.target.x+controls.r*Math.sin(controls.phi)*Math.cos(controls.theta),controls.target.y+controls.r*Math.cos(controls.phi),controls.target.z+controls.r*Math.sin(controls.phi)*Math.sin(controls.theta));camera.lookAt(controls.target)}updateCam();
+renderer.domElement.addEventListener('pointerdown',e=>{controls.drag=true;controls.x=e.clientX;controls.y=e.clientY;renderer.domElement.setPointerCapture(e.pointerId)});renderer.domElement.addEventListener('pointerup',()=>controls.drag=false);renderer.domElement.addEventListener('pointermove',e=>{if(!controls.drag)return;controls.theta-=(e.clientX-controls.x)*.008;controls.phi=Math.max(.25,Math.min(1.48,controls.phi+(e.clientY-controls.y)*.008));controls.x=e.clientX;controls.y=e.clientY;updateCam()});renderer.domElement.addEventListener('wheel',e=>{controls.r=Math.max(7,Math.min(38,controls.r+e.deltaY*.025));updateCam()});
+scene.add(new THREE.HemisphereLight(0xeaf5ff,0x6b6254,2));const sun=new THREE.DirectionalLight(0xfff2dc,3);sun.position.set(-8,15,8);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-20;sun.shadow.camera.right=20;sun.shadow.camera.top=20;sun.shadow.camera.bottom=-20;scene.add(sun);
+const mat=(c,r=.7)=>new THREE.MeshStandardMaterial({color:c,roughness:r});const floorMat=mat(0xc9c9c2),wall=mat(0xe8e8e2),dark=mat(0x35424d),wood=mat(0x8a5c3b),metal=mat(0x59636b),screen=mat(0x182d3b,.25),glass=new THREE.MeshStandardMaterial({color:0x9dd9ed,transparent:true,opacity:.22,roughness:.15});
+function box(x,y,z,sx,sy,sz,m){let o=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;scene.add(o);return o}
+box(0,-.15,0,22,.3,18,floorMat); // floor
+// walls, front mostly open for visibility
+box(0,3,-9,22,6,.25,wall);box(-11,3,0,.25,6,18,wall);box(11,3,0,.25,6,18,wall);box(0,3,9,22,6,.25,wall);
+// window strips
+for(let x=-8;x<=8;x+=4){box(x,3.6,-8.85,3.2,2.1,.08,glass);box(x,3.6,-8.78,.07,2.2,.1,metal)}
+// partitions and meeting room
+box(-5,1.5,-2,.12,3,6,wall);box(-1,1.5,-5,8,.12,4,wall);box(6,1.5,2,.12,3,8,wall);
+function desk(x,z){box(x,.72,z,2.1,.14,1.05,wood);box(x-.85,.35,z, .12,.7,.9,metal);box(x+.85,.35,z,.12,.7,.9,metal);box(x,.82,z-.25,.85,.05,.5,dark);box(x,.99,z-.25,.72,.42,.06,screen);box(x,.77,z-.05,.35,.03,.2,metal); // keyboard
+// chair
+box(x,.55,z+1,.65,.15,.65,dark);box(x,.95,z+1.28,.65,.85,.12,dark);
+}
+const desks=[[-7,-6],[-3,-6],[1,-6],[5,-6],[-7,1],[-3,1],[1,1],[5,1]];
+desks.forEach(d=>desk(...d));
+// meeting table
+box(7,.75,-5,4,.15,2,wood);for(let i=0;i<6;i++)box(5.5+i*.6,.5,-3.5,.45,.1,.45,dark);
+// break area
+box(-7,.7,6,3,.15,1.3,wood);for(let i=0;i<3;i++)box(-8+i, .45,7.2,.5,.1,.5,dark);
+// potted plants
+function plant(x,z){box(x,.35,z,.45,.7,.45,mat(0x70523a));let g=new THREE.Group();for(let i=0;i<5;i++){let l=new THREE.Mesh(new THREE.SphereGeometry(.45,.12,.12),mat(0x3f8053));l.position.set((Math.random()-.5)*.5,1.15+Math.random()*.5,(Math.random()-.5)*.5);g.add(l)}g.position.set(x,0,z);scene.add(g)}plant(-9,-8);plant(9,-8);plant(9,7);
+// NPCs with simple articulated limbs and routine states
+const workers=[];const colors=[0x426b91,0x9a654c,0x567d62,0x78608f,0xb18a43,0x4c8588,0x9b5368,0x586273];
+function makeWorker(i,x,z){let g=new THREE.Group();const shirt=mat(colors[i]),skin=mat(0xc99b78),pants=mat(0x303b4b),hair=mat(0x382b25);
+let torso=new THREE.Mesh(new THREE.CapsuleGeometry(.28,.48,4,8),shirt);torso.position.y=1.15;g.add(torso);
+let head=new THREE.Mesh(new THREE.SphereGeometry(.22,16,12),skin);head.position.y=1.72;g.add(head);let h=new THREE.Mesh(new THREE.SphereGeometry(.225,12,8),hair);h.position.y=1.83;h.scale.y=.55;g.add(h);
+let legs=[];for(let s of [-1,1]){let leg=new THREE.Mesh(new THREE.CapsuleGeometry(.105,.48,4,8),pants);leg.position.set(s*.13,.48,0);g.add(leg);legs.push(leg)}
+let arms=[];for(let s of [-1,1]){let a=new THREE.Mesh(new THREE.CapsuleGeometry(.075,.42,4,8),shirt);a.position.set(s*.34,1.18,.05);a.rotation.z=s*.18;g.add(a);arms.push(a)}
+g.position.set(x,0,z);scene.add(g);return {g,head,arms,legs,i,home:new THREE.Vector3(x,0,z),state:i<6?'work':'break',phase:Math.random()*6,desk:desks[i],target:null}}
+desks.forEach((d,i)=>workers.push(makeWorker(i,d[0],d[1]+.8)));
+function label(text,x,z){/* intentionally no floating labels for realism */}
+let simMinutes=8*60,paused=false;function toggleTime(){paused=!paused}
+function setView(v){if(v==='wide'){controls.target.set(0,1,0);controls.r=23;controls.theta=.75;controls.phi=1.05}if(v==='desk'){controls.target.set(0,1,0);controls.r=13;controls.theta=.3;controls.phi=1.15}if(v==='break'){controls.target.set(-7,1,6);controls.r=9;controls.theta=0;controls.phi=1.2}updateCam()}
+window.setView=setView;window.toggleTime=toggleTime;
+const keys={};onkeydown=e=>keys[e.key.toLowerCase()]=true;onkeyup=e=>keys[e.key.toLowerCase()]=false;
+function tick(dt){if(!paused)simMinutes+=dt*2;let mins=Math.floor(simMinutes)%1440,h=Math.floor(mins/60),m=mins%60;document.getElementById('clock').textContent=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+' • '+(h>=9&&h<17?'Ish vaqti':'Tanaffus / ish vaqtidan tashqari');
+workers.forEach(w=>{w.phase+=dt;let working=(h>=9&&h<17&&w.i<6);w.state=working?'work':'break';if(w.state==='work'){w.g.position.copy(w.home);w.g.rotation.y=Math.PI;w.arms[0].rotation.x=Math.sin(w.phase*7)*.35-.6;w.arms[1].rotation.x=Math.cos(w.phase*8)*.3-.6;w.head.rotation.x=Math.sin(w.phase*1.5)*.06;w.legs.forEach(l=>l.rotation.x=0)}else{if(w.i>=6){let dest=new THREE.Vector3(-7+(w.i-6)*1.2,0,6.5);w.g.position.lerp(dest,Math.min(1,dt*1.5));w.g.rotation.y=0;w.arms.forEach(a=>a.rotation.x=Math.sin(w.phase)*.1);w.head.rotation.x=Math.sin(w.phase)*.08}else{w.g.position.copy(w.home);w.g.rotation.y=Math.sin(w.phase*.4)*.15;w.arms.forEach(a=>a.rotation.x=0)}}});
+document.getElementById('stats').textContent='Xodimlar: 8 • Ishlayapti: '+(h>=9&&h<17?6:0)+' • Dam: '+(h>=9&&h<17?2:8)}
+let last=performance.now();function loop(now){let dt=Math.min(.05,(now-last)/1000);last=now;tick(dt);renderer.render(scene,camera);requestAnimationFrame(loop)}requestAnimationFrame(loop);
+onresize=()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)};
+document.getElementById('loading').remove();
+} catch(e) { showError(e); }
+}
+loadThree([
+ 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.152.2/three.min.js',
+ 'https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js',
+ 'https://unpkg.com/three@0.152.2/build/three.min.js'
+]);
+</script>
+</body></html>
